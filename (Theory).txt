@@ -1,0 +1,101 @@
+CS161 Final Project (Theory)
+
+a) Consider any finite strings A and B for which we hope to find the LCS. Now
+consider some character c such that c is not found in either A or B. c will be
+reserved as a specific sentinel character for our algorithm. Now, let us append
+m c's to to the beginning of both A and B. Because the length of both c 
+sections is the same as the length of the shorter string, there cannot be a 
+subsequence between A and B that will be longer than the series of c. If we run
+CLCS on this new combination of strings, we know it will be "cccccccc..." + the
+LCS(A, B). This is because the function sees that the c's are a common 
+subsequence, and try to append the LCS of A and B to extend it. After that, we
+can simply remove the c's, and be left with LCS(A, B). Thus, With one call to 
+CLCS, we can get LCS. This means that LCS can run in the same or less time than
+CLCS.
+
+
+b) To show that this new algorithm is correct, we need to prove that the 
+algorithm that cuts at every index of both A and B works the same as one that 
+cuts at every index of A, but does not cut B(this is the established, correct
+implementation of CLCS). This means that, for any value ofA, B, i, and j, 
+there exists a k such that LCS(cut(A, i)), cut(B, j)) equals LCS(cut(A, k), cut(B, 0))
+which is to say that B remains unedited. Part c shows us that if we are given a
+correct LCS, we can use that to calculate the path taken by the actual common
+subsequence. By analyzing the diagonal lines that are found in the graph, we
+can see that each diagonal at (i, j) corresponds to cut(A, i) and cut(B, j).
+
+If we can find a series of LCS characters in B, before index j, where j = 0. 
+We know that this series of characters must also appear somewhere in A. Now,
+let us specially demarcate each of these LCS characters. If we find x
+characters before j = 0, then we will also find x LCS characters in A before 
+some index k. If we use this new k as our starting point, then we can find x LCS
+characters x indeces before the end of cut(A, k) and cut(B, 0). Therefore, there
+is always a way to transform cut(A, i) and cut(B, j) into cut(A, k) and cut(B, 0)
+for some value k.
+
+
+c) In order to find the corresponding path to a given subsequence, we will begin
+at node (0, 0), and begin moving down and to the right. If at a given point (i,j)
+we see that A[i] is the same letter as B[j], we will move diagonally downwards and
+to the right, incrementing the counter of the next node. If the two letters do not
+match, we can either move down to consider a different substring of A, or right
+to consider a different substring of B. This will create the dp table, showing
+the number of matches each given path has.
+
+From here, we will find the actual path of the LCS by starting at node (m,n),
+and iterating  upwards and to the right towards (0,0). Given a coordinate 
+(i, j), we will move diagonally up and right if A[i] = B[j], incrementing our
+counter for the number of diagonals (matches) we have found on this path. If
+the two letters do not match, we will move upwards or leftwards, depending on
+which node we find is larger. Given a choice, we will move to the larger of the
+two nodes. This method will eventually give us a path from (m,n) to (0,0). To
+find the LCS from a series of these paths, we will need to compute which of the
+many paths contains the most diagonals (matches), because this will be the 
+shortest path from (m,n) to (0,0).
+
+
+d)To show that there cannot exist a path from (j,0) to (m+i,n) through x that 
+is shorter than the shortest path from (j,0) to (m+j,n) through G_L, assume 
+by contradiction that the opposite is true. This would mean that there does
+exist some path through x that satisfies these conditions. This path, which we
+will call z, must cross the path p_i at no fewer than two points (this is the
+only condition where z can cross into both G_U and G_L). The points at which
+z crosses p_i which we will label c and d, are two points that are contained
+on the line p_i. Now consider a path that folows z until reaching c, then
+follows p_i until it reaches d, at which point it will resume following z.
+
+We know, because p_i is a the shortest path from (i,0) to (m+i,n), that the
+shortest path between two nodes on p_i is to follow p_i. This must mean that
+our proposed path is shorter than z, because it follows p_i where z deviates
+from it. This is a contradiction, because we defined z as the shortest path
+between (j,0) to (m+j,n) through G_L, but it clearly is not the shortest path,
+as we just showed. Therefore, a path like z cannot exist, so it must be the
+case that there cannot exist a path from (j,0) to (m+i,n) through x that 
+is shorter than the shortest path from (j,0) to (m+j,n) through G_L
+
+
+e) The find_shortest_path algorithm has a recursive call that recurses on itself
+until it reaches the point where the upper and lower bounds meet, e.g. where 
+UPPER_Y - LOWER_Y = 0. We know that because the recursion takes two bounds, finds
+a new path within thouse bounds, then uses the new path as a bound, that the 
+distance between the upper and lower bounds decreases by a factor of 2 (only 
+half of the space between the previous upper and lower bounds is being 
+considered.) This means that the height of the recursion tree must be lg(m), 
+because every path will have a total height of at most m, as this is the length
+of A, so it wouldn't be possible to have a path that is longer than either of 
+the given words.
+
+Given a tree height of lg(m), we will now compute the amount of work done at
+each level of the recursion tree. The majority of computation that goes on here
+is recalculating the dp table found between the given bounds. The area between 
+the initial two paths will be m*n, because the paths will have a difference in
+height of m (this is given in the algorithmic definition), and a width of n as
+they must span the entire length of B. The area between the two bounds can be 
+approximated to a parallelogram, whose area is given by b*h, which in our case,
+is m*n. The next recursive level will halve this area, as explained previously,
+but consider twice as many regions as before. Thus, the nth recursive call has 
+to recompute 2^n subregions of size (m*n)/(2^n). We can see that each level 
+must compute on the order of m*n steps.
+
+Because we know that there are lg(m) levels, and each level computes m*n steps,
+the overall algorithm must run on the order of O(mnlg(m)) time.
